@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,28 @@ import {
 
 export default function TextEditor() {
   const [text, setText] = useState("");
+  const undoStack = useRef([]);
+  const redoStack = useRef([]);
+
+  const handleChange = (e) => {
+    undoStack.current.push(text);
+    redoStack.current = [];
+    setText(e.target.value);
+  };
+
+  const handleUndo = () => {
+    if (undoStack.current.length > 0) {
+      redoStack.current.push(text);
+      setText(undoStack.current.pop());
+    }
+  };
+
+  const handleRedo = () => {
+    if (redoStack.current.length > 0) {
+      undoStack.current.push(text);
+      setText(redoStack.current.pop());
+    }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-start justify-start bg-gradient-to-br from-black via-gray-900 to-gray-950 text-white p-10">
@@ -31,7 +53,19 @@ export default function TextEditor() {
           Text Editor
         </h1>
         <div className="flex flex-wrap gap-4 justify-center w-full">
-          {[FaUndo, FaRedo, FaBold, FaItalic, FaUnderline, FaAlignLeft, FaAlignCenter, FaAlignRight, FaListUl, FaListOl].map(
+          <Button
+            onClick={handleUndo}
+            className="p-3 bg-gray-700 hover:bg-purple-600 text-white rounded-lg transition duration-300 shadow-lg border border-gray-600 hover:shadow-purple-500/50"
+          >
+            <FaUndo size={20} />
+          </Button>
+          <Button
+            onClick={handleRedo}
+            className="p-3 bg-gray-700 hover:bg-purple-600 text-white rounded-lg transition duration-300 shadow-lg border border-gray-600 hover:shadow-purple-500/50"
+          >
+            <FaRedo size={20} />
+          </Button>
+          {[FaBold, FaItalic, FaUnderline, FaAlignLeft, FaAlignCenter, FaAlignRight, FaListUl, FaListOl].map(
             (Icon, index) => (
               <Button
                 key={index}
@@ -54,7 +88,7 @@ export default function TextEditor() {
           className="w-full min-h-[80vh] bg-transparent text-white text-lg outline-none resize-y placeholder-gray-400 no-scrollbar p-4 border-2 border-gray-700 focus:border-purple-500 transition-all duration-300 rounded-lg shadow-inner"
           placeholder="Start typing here..."
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleChange}
         />
       </motion.div>
     </div>
